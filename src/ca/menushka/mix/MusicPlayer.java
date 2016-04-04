@@ -6,6 +6,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -53,13 +54,30 @@ public class MusicPlayer extends JFXPanel {
 		int w = 300 - 20 - height;
 		int r = (w - 20) / 3;
 		
-		fastBackward = new CircleButton(height, 90, r, Helper.colorFromHEX("#000000"), new MouseAdapter() {});
-		play = new CircleButton(height + (r + 10), 90, r, Helper.colorFromHEX("#000000"), new MouseAdapter() {});
-		fastForward = new CircleButton(height + (r + 10) * 2, 90, r, Helper.colorFromHEX("#000000"), new MouseAdapter() {});
+		fastBackward = new CircleButton(height, 90, r, Helper.loadResourceImage("/fastbackward.png"), new MouseAdapter() {});
+		play = new CircleButton(height + (r + 10), 90, r, Helper.play, new MouseAdapter() {@Override
+			public void mousePressed(MouseEvent e) {
+				if (Helper.playing){
+					Helper.pause();
+				} else {
+					Helper.play();
+				}
+				Helper.musicPlayer.repaint();
+		}});
+		fastForward = new CircleButton(height + (r + 10) * 2, 90, r, Helper.loadResourceImage("/fastforward.png"), new MouseAdapter() {});
 		
 		add(fastBackward);
 		add(play);
 		add(fastForward);
+	}
+	
+	public void update(){
+		title = Helper.getSongTitle(Helper.nowPlaying.getAbsolutePath());
+		artist = Helper.getSongArtist(Helper.nowPlaying.getAbsolutePath());
+		image = Helper.getAlbumArt(Helper.nowPlaying.getAbsolutePath());
+		
+		play.setImage(Helper.pause);
+		repaint();
 	}
 	
 	@Override

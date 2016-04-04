@@ -17,7 +17,6 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
-import javafx.application.Application;
 import javafx.scene.media.*;
 
 import com.google.gson.JsonObject;
@@ -29,18 +28,27 @@ import com.mpatric.mp3agic.UnsupportedTagException;
 
 
 public class Helper {
-	
+
 	//Resources
 	public static JsonObject json;
 	public static Font lato_light;
 	public static Font lato_normal;
 	public static Font lato_bold;
 	
+	public static Image play;
+	public static Image pause;
+	
 	//Global Variables
+	public static MusicPlayer musicPlayer;
+	public static SongHolder songHolder;
+	
+	public static String musicPath = "/Music/";
+	
 	public static Media media;
 	public static MediaPlayer mediaPlayer;
 	
-	public static MusicPlayer musicPlayer;
+	public static boolean playing = false;
+	public static File nowPlaying;
 	
 	//Color from HEX
 	public static Color colorFromHEX(String hex){
@@ -54,8 +62,9 @@ public class Helper {
 	public static void init(){
 		loadFont();
 		loadJSON();
-		//media = new Media("");
-		//mediaPlayer = new MediaPlayer(media);
+		
+		play = Helper.loadResourceImage("/play.png");
+		pause = Helper.loadResourceImage("/pause.png");
 	}
 	
 	//Load font into the function
@@ -104,31 +113,13 @@ public class Helper {
 	
 	public static ArrayList<String> getMusic(){
 		ArrayList<String> songList = new ArrayList<String>();
-		songList.add("PSY - Gangnam Style");
-		songList.add("Justin Bieber - Love Yourself");
-		songList.add("Twenty One Pilots - Stressed Out");
-		songList.add("Flo Rida - My House");
-		songList.add("Charlie Puth - One Call  Away");
-		songList.add("Ariana Grande - Love Me Harder");
-		songList.add("Mike Posner - I Took A Pill In Ibiza");
-		songList.add("PSY - DADDY");
-		songList.add("Major Lazer - Lean On");
-		songList.add("Rachel Platten - Fight Song");
-		songList.add("Selena Gomez - Good For You");
-		return songList;
-	}
-	
-	public static ArrayList<String> getMusicReal(){
-		ArrayList<String> songList = new ArrayList<String>();
 		
-		File folder = new File(System.getProperty("user.home") + "/Music/Pop");
+		File folder = new File(System.getProperty("user.home") + musicPath);
 		File[] listOfFiles = folder.listFiles();
 		
 		for (int i = 0; i < listOfFiles.length; i++){
-			if (listOfFiles[i].isDirectory()){
-				
-			} else {
-				File f = listOfFiles[i];
+			File f = listOfFiles[i];
+			if (!listOfFiles[i].isDirectory()){
 				if (f.getName().contains(".mp3")){
 					songList.add(f.getName().replace(".mp3", ""));
 				}
@@ -137,13 +128,100 @@ public class Helper {
 		return songList;
 	}
 	
+	public static ArrayList<String> getFolders(){
+		ArrayList<String> folderList = new ArrayList<String>();
+		
+		File folder = new File(System.getProperty("user.home") + musicPath);
+		File[] listOfFiles = folder.listFiles();
+		
+		for (int i = 0; i < listOfFiles.length; i++){
+			File f = listOfFiles[i];
+			if (listOfFiles[i].isDirectory()){
+				folderList.add(f.getName());
+			}
+		}
+		return folderList;
+	}
+	
+	public static void play(){
+		if (mediaPlayer == null){
+			if (getMusic().size() > 0){
+				String path = System.getProperty("user.home") + Helper.musicPath + getMusic().get(0) + ".mp3";
+				play(path);
+			}
+		} else {
+			mediaPlayer.play();
+		}
+	}
+	
 	public static void play(String path){
 		if (mediaPlayer != null){
 			mediaPlayer.stop();
 		}
-		media = new Media(new File(path).toURI().toString());
+		
+		nowPlaying = new File(path);
+		
+		media = new Media(nowPlaying.toURI().toString());
 		mediaPlayer = new MediaPlayer(media);
 		mediaPlayer.play();
+		
+		Helper.playing = true;
+		Helper.musicPlayer.play.setImage(Helper.pause);
+		Helper.musicPlayer.update();
+	}
+	
+	public static void pause(){
+		if (mediaPlayer == null){
+			
+		} else {
+			mediaPlayer.pause();
+			Helper.musicPlayer.play.setImage(Helper.play);
+			Helper.playing = false;
+		}
+	}
+	
+	public static Image loadResourceImage(String path){
+		try {
+			return ImageIO.read(Mix.class.getResource(path));
+		} catch (IOException e) {
+			return null;
+		}
+	}
+	
+	public static String getSongTitle(String path){
+		try {
+			Mp3File song = new Mp3File(path);
+			if (song.hasId3v2Tag()){
+				ID3v2 id3v2tag = song.getId3v2Tag();
+				if (id3v2tag.getTitle() != null){
+					return id3v2tag.getTitle();
+				} else {
+					return new File(path).getName();
+				}
+			} else {
+				return new File(path).getName();
+			}
+		} catch (Exception e){
+			return "Unknown";
+		}
+	}
+	
+	public static String getSongArtist(String path){
+		try {
+			Mp3File song = new Mp3File(path);
+			if (song.hasId3v2Tag()){
+				ID3v2 id3v2tag = song.getId3v2Tag();
+				if (id3v2tag.getArtist() != null){
+					return id3v2tag.getArtist();
+				} else {
+					return "Unknown";
+				}
+			} else {
+				return "Unknown";
+			}
+		} catch (Exception e){
+			return "Unknown";
+		}
 	}
 	
 	public static Image getAlbumArt(String path){

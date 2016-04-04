@@ -16,9 +16,8 @@ public class SongHolder extends JPanel implements MouseWheelListener {
 	int x, y, width, height;
 	JPanel holder = new JPanel();
 	
-	
-	
 	ArrayList<String> songList;
+	ArrayList<String> folderList;
 	
 	SongHolder(int x, int y, int width, int height) {
 		this.x = x;
@@ -29,29 +28,56 @@ public class SongHolder extends JPanel implements MouseWheelListener {
 		setBounds(x, y, width, height);
 		setLayout(null);
 		
-		songList = Helper.getMusicReal();
+		Helper.songHolder = this;
 		
-		for (int i = 0; i < songList.size(); i++){
-			String[] s = songList.get(i).split(" - ");
+		createSongItems();
+		
+		addMouseWheelListener(this);
+	}
+	
+	public void createSongItems(){
+		holder.removeAll();
+		
+		songList = Helper.getMusic();
+		folderList = Helper.getFolders();
+		
+		SongItem panel = new SongItem("Back", "Move back a directory", "/");
+		panel.type = SongItem.BACK;
+		panel.setBounds(0, 0, width, 40);
+		panel.setBackground(Helper.colorFromHEX("#eeeeee"));
+		holder.add(panel);
+		
+		//Draw folders
+		for (int i = 0; i < folderList.size(); i++){
+			String path = System.getProperty("user.home") + Helper.musicPath + folderList.get(i) + ".mp3";
 					
-			SongItem panel = new SongItem(s[1], s[0], System.getProperty("user.home") + "/Music/Pop/" + songList.get(i) + ".mp3");
-			panel.setBounds(0, i * 40, width, 40);
-			panel.setBackground(Helper.colorFromHEX("#eeeeee"));
+			panel = new SongItem(folderList.get(i), "Folder", path);
+			panel.setBounds(0, i * 40 + 40, width, 40);
 			holder.add(panel);
 		}
-		holder.setBounds(0, 0, width, 40 * songList.size());
+		
+		//Draw songs
+		for (int i = 0; i < songList.size(); i++){
+			String path = System.getProperty("user.home") + Helper.musicPath + songList.get(i) + ".mp3";
+					
+			panel = new SongItem(Helper.getSongTitle(path), Helper.getSongArtist(path), path);
+			panel.setBounds(0, i * 40 + 40 + 40 * folderList.size(), width, 40);
+			holder.add(panel);
+		}
+		
+		holder.setBounds(0, 0, width, 40 * songList.size() + 40 + 40 * folderList.size());
 		holder.setLayout(null);
 		
 		add(holder);
 		
-		addMouseWheelListener(this);
+		repaint();
 	}
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		int scroll = holder.getY() - e.getWheelRotation();
-		if (scroll < height - 40 * songList.size()){
-			scroll = height - 40 * songList.size();
+		if (scroll < height - 40 * folderList.size() - 40 - 40 * songList.size()){
+			scroll = height - 40 * folderList.size() - 40 - 40 * songList.size();
 		} else if (scroll > 0){
 			scroll = 0;
 		}

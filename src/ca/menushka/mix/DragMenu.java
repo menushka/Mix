@@ -1,12 +1,14 @@
 package ca.menushka.mix;
 
 import java.awt.Color;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 
 import javax.swing.JFrame;
@@ -63,6 +65,10 @@ public class DragMenu extends JPanel {
 		g2.setColor(Helper.colorFromHEX("#ffffff"));
 		g2.setFont(Helper.lato_normal.deriveFont(12f));
 		
-		g2.drawString("Mix Player", 120, 15);
+		String title = "Mix Player" + " - v" + Mix.VERSION + " BETA";
+		
+		FontMetrics fm = g2.getFontMetrics(Helper.lato_normal.deriveFont(12f));
+		
+		g2.drawString(title, width / 2 - fm.stringWidth(title) / 2, height / 2 + fm.getHeight() / 2 - fm.getDescent());
 	}
 }

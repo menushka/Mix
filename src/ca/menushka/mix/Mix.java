@@ -9,9 +9,9 @@ import javax.swing.JScrollPane;
 
 public class Mix extends JFrame {
 	
-	public final String VERSION = "0.1";
-	public final int WIDTH = 300;
-	public final int HEIGHT = 420;
+	public static final String VERSION = "0.5";
+	public static final int WIDTH = 300;
+	public static final int HEIGHT = 420;
 	JFrame frame = this;
 	
 	CircleButton closeButton = new CircleButton(5, 5, 10, Helper.colorFromHEX("#fc625d"), new MouseAdapter() {public void mousePressed(java.awt.event.MouseEvent e) {
