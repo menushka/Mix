@@ -44,6 +44,7 @@ public class Mix extends JFrame {
 		add(menuBar);
 		
 		add(player);
+		Helper.musicPlayer = player;
 		add(holder);
 		
 		setVisible(true);

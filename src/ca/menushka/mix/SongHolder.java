@@ -16,6 +16,10 @@ public class SongHolder extends JPanel implements MouseWheelListener {
 	int x, y, width, height;
 	JPanel holder = new JPanel();
 	
+	
+	
+	ArrayList<String> songList;
+	
 	SongHolder(int x, int y, int width, int height) {
 		this.x = x;
 		this.y = y;
@@ -25,13 +29,17 @@ public class SongHolder extends JPanel implements MouseWheelListener {
 		setBounds(x, y, width, height);
 		setLayout(null);
 		
-		for (int i = 0; i < 10; i++){
-			SongItem panel = new SongItem();
+		songList = Helper.getMusicReal();
+		
+		for (int i = 0; i < songList.size(); i++){
+			String[] s = songList.get(i).split(" - ");
+					
+			SongItem panel = new SongItem(s[1], s[0], System.getProperty("user.home") + "/Music/Pop/" + songList.get(i) + ".mp3");
 			panel.setBounds(0, i * 40, width, 40);
 			panel.setBackground(Helper.colorFromHEX("#eeeeee"));
 			holder.add(panel);
 		}
-		holder.setBounds(0, 0, width, 40 * 10);
+		holder.setBounds(0, 0, width, 40 * songList.size());
 		holder.setLayout(null);
 		
 		add(holder);
@@ -42,8 +50,8 @@ public class SongHolder extends JPanel implements MouseWheelListener {
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		int scroll = holder.getY() - e.getWheelRotation();
-		if (scroll < 250 - 400){
-			scroll = -150;
+		if (scroll < height - 40 * songList.size()){
+			scroll = height - 40 * songList.size();
 		} else if (scroll > 0){
 			scroll = 0;
 		}
