@@ -27,6 +27,7 @@ public class MusicPlayer extends JFXPanel {
 	int x, y, width, height;
 	JFrame parent;
 	
+	SongProgress songProgress;
 	CircleButton fastBackward, play, fastForward;
 	
 	public MusicPlayer(int x, int y, int width, int height, JFrame parent) {
@@ -37,11 +38,11 @@ public class MusicPlayer extends JFXPanel {
 		this.height = height;
 		this.parent = parent;
 		
-		this.title = "Pikachu's Hits";
-		this.artist = "Pokemon OST";
+		this.title = "Not selected";
+		this.artist = "Not selected";
 		try {
-			this.image = ImageIO.read(Mix.class.getResource("/pokemon.jpg"));
 			this.unknown = ImageIO.read(Mix.class.getResource("/unknown_album.png"));
+			this.image = this.unknown;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -50,6 +51,9 @@ public class MusicPlayer extends JFXPanel {
 		setLayout(null);
 		
 		setBackground(Helper.colorFromHEX("#333333"));
+		
+		songProgress = new SongProgress(height, 60, 300 - 20 - height, 20, Helper.colorFromHEX("#ffffff"), this);
+		add(songProgress);
 		
 		int w = 300 - 20 - height;
 		int r = (w - 20) / 3;
@@ -76,7 +80,8 @@ public class MusicPlayer extends JFXPanel {
 		artist = Helper.getSongArtist(Helper.nowPlaying.getAbsolutePath());
 		image = Helper.getAlbumArt(Helper.nowPlaying.getAbsolutePath());
 		
-		play.setImage(Helper.pause);
+		songProgress.update();
+		
 		repaint();
 	}
 	
@@ -102,6 +107,6 @@ public class MusicPlayer extends JFXPanel {
 		g2.setFont(Helper.lato_light.deriveFont(10f));
 		g2.drawString(artist, height, 50);
 		
-		g2.drawLine(height, 70, 300 - 20, 70);
+		//g2.drawLine(height, 70, 300 - 20, 70);
 	}
 }

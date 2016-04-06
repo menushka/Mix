@@ -9,7 +9,7 @@ import javax.swing.JScrollPane;
 
 public class Mix extends JFrame {
 	
-	public static final String VERSION = "0.5";
+	public static final String VERSION = "0.6";
 	public static final int WIDTH = 300;
 	public static final int HEIGHT = 420;
 	JFrame frame = this;

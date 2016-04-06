@@ -12,11 +12,14 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
+import javafx.event.EventHandler;
 import javafx.scene.media.*;
 
 import com.google.gson.JsonObject;
@@ -70,10 +73,10 @@ public class Helper {
 	//Load font into the function
 	public static void loadFont(){
 		try {
-			lato_light = Font.createFont(Font.TRUETYPE_FONT, new File(Mix.class.getResource("/Lato-Light.ttf").toURI()));
-			lato_normal = Font.createFont(Font.TRUETYPE_FONT, new File(Mix.class.getResource("/Lato-Regular.ttf").toURI()));
-			lato_bold = Font.createFont(Font.TRUETYPE_FONT, new File(Mix.class.getResource("/Lato-Bold.ttf").toURI()));
-		} catch (FontFormatException | IOException | URISyntaxException e) {
+			lato_light = Font.createFont(Font.TRUETYPE_FONT, Mix.class.getResourceAsStream("/Lato-Light.ttf"));
+			lato_normal = Font.createFont(Font.TRUETYPE_FONT, Mix.class.getResourceAsStream("/Lato-Regular.ttf"));
+			lato_bold = Font.createFont(Font.TRUETYPE_FONT, Mix.class.getResourceAsStream("/Lato-Bold.ttf"));
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -83,8 +86,9 @@ public class Helper {
 	public static void loadJSON(){
 		JsonParser parser = new JsonParser();
 		try {
-			FileReader fileReader = new FileReader(new File(Mix.class.getResource("/color.json").toURI()));
-			json = (JsonObject) parser.parse(fileReader);
+			InputStream is = Mix.class.getResourceAsStream("/color.json");
+			InputStreamReader reader = new InputStreamReader(is);
+			json = (JsonObject) parser.parse(reader);
 		} catch (Exception e) {
 			
 		}
@@ -151,6 +155,10 @@ public class Helper {
 			}
 		} else {
 			mediaPlayer.play();
+			
+			Helper.playing = true;
+			Helper.musicPlayer.play.setImage(Helper.pause);
+			Helper.musicPlayer.update();
 		}
 	}
 	
@@ -175,8 +183,10 @@ public class Helper {
 			
 		} else {
 			mediaPlayer.pause();
-			Helper.musicPlayer.play.setImage(Helper.play);
+			
 			Helper.playing = false;
+			Helper.musicPlayer.play.setImage(Helper.play);
+			Helper.musicPlayer.update();
 		}
 	}
 	
