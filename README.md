@@ -20,3 +20,11 @@ I just added playlists but currently you can't exactly create your own playlists
 
 ####Mixing
 This is the part I'm currently working, I wanted to make a player that would seamlessly mix my music into one big track.  Of course this would be an options, so you could turn this off or on but I really like the idea of a endless dynamic playlist of music.
+
+##Install
+
+1. Click "Download ZIP"
+2. Unzip the file
+3. Open the "build" directory
+4. Drag the "Mix" application into your "Applications" folder
+5. Enjoy!
