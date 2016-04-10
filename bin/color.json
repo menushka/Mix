@@ -1,5 +1,12 @@
 {
-	"background":"#111111",
-	"menubar":"#444444",
-	"fontcolor":"#ffffff"
+	"menubar_background":"#444444",
+	"menubar_font":"#ffffff",
+	"player_background":"#222222",
+	"player_font":"#ffffff",
+	"player_icon":"#ffffff",
+	"list_background":"#eeeeee",
+	"list_background_hover":"#dddddd",
+	"list_background_onclick":"#cccccc",
+	"list_font":"#222222",
+	"list_icon":"#aaaaaa"
 }

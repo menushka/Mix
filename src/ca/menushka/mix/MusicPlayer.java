@@ -1,23 +1,17 @@
 package ca.menushka.mix;
 
-import java.awt.Font;
-import java.awt.FontFormatException;
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 
 import javafx.embed.swing.JFXPanel;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
 
 public class MusicPlayer extends JFXPanel {
 	
@@ -50,7 +44,7 @@ public class MusicPlayer extends JFXPanel {
 		setBounds(x, y, width, height);
 		setLayout(null);
 		
-		setBackground(Helper.colorFromHEX("#333333"));
+		setBackground(Helper.loadColorfromJSON("player_background"));
 		
 		songProgress = new SongProgress(height, 60, 300 - 20 - height, 20, Helper.colorFromHEX("#ffffff"), this);
 		add(songProgress);
@@ -58,8 +52,16 @@ public class MusicPlayer extends JFXPanel {
 		int w = 300 - 20 - height;
 		int r = (w - 20) / 3;
 		
-		fastBackward = new CircleButton(height, 90, r, Helper.loadResourceImage("/fastbackward.png"), new MouseAdapter() {});
-		play = new CircleButton(height + (r + 10), 90, r, Helper.play, new MouseAdapter() {@Override
+		Color iconColor = Helper.loadColorfromJSON("player_icon");
+		fastBackward = new CircleButton(height, 90, r, Helper.loadResourceImage("/fastbackward.png"), iconColor, new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (Helper.mediaPlayer != null){
+					Helper.play(Helper.getPrevSong());
+				}
+			}
+		});
+		play = new CircleButton(height + (r + 10), 90, r, Helper.play, iconColor, new MouseAdapter() {@Override
 			public void mousePressed(MouseEvent e) {
 				if (Helper.playing){
 					Helper.pause();
@@ -68,7 +70,14 @@ public class MusicPlayer extends JFXPanel {
 				}
 				Helper.musicPlayer.repaint();
 		}});
-		fastForward = new CircleButton(height + (r + 10) * 2, 90, r, Helper.loadResourceImage("/fastforward.png"), new MouseAdapter() {});
+		fastForward = new CircleButton(height + (r + 10) * 2, 90, r, Helper.loadResourceImage("/fastforward.png"), iconColor, new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (Helper.mediaPlayer != null){
+					Helper.play(Helper.getNextSong());
+				}
+			}
+		});
 		
 		add(fastBackward);
 		add(play);
@@ -100,7 +109,7 @@ public class MusicPlayer extends JFXPanel {
 			g2.drawImage(unknown, 20, 20, height - 40, height - 40, null);
 		}
 		
-		g2.setColor(Helper.loadColorfromJSON("fontcolor"));
+		g2.setColor(Helper.loadColorfromJSON("player_font"));
 		g2.setFont(Helper.lato_light.deriveFont(16f));
 		g2.drawString(title, height, 36);
 		

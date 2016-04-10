@@ -2,7 +2,6 @@ package ca.menushka.mix;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.FontFormatException;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -10,18 +9,19 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URISyntaxException;
+import java.io.Writer;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
-import javafx.event.EventHandler;
-import javafx.scene.media.*;
-
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mpatric.mp3agic.ID3v2;
@@ -29,11 +29,14 @@ import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.UnsupportedTagException;
 
+import ca.menushka.mix.equalizer.Equalizer;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+
 
 public class Helper {
 
 	//Resources
-	public static JsonObject json;
 	public static Font lato_light;
 	public static Font lato_normal;
 	public static Font lato_bold;
@@ -42,10 +45,25 @@ public class Helper {
 	public static Image pause;
 	
 	//Global Variables
+	
+	public static JsonObject colorJSON;
+	public static JsonArray playlistJSON;
+	
+	public static Mix mix;
 	public static MusicPlayer musicPlayer;
 	public static SongHolder songHolder;
 	
+	public static Equalizer equalizer;
+	public static double volume = 1.0;
+	
 	public static String musicPath = "/Music/";
+	public static int currentSongIndex = -1;
+	public static ArrayList<String> currentSongList = new ArrayList<String>();
+	
+	public static int currentPlaylistIndex = -1;
+	public static ArrayList<String> currentPlaylist = new ArrayList<String>();
+	
+	public static ArrayList<Playlist> playlists = new ArrayList<Playlist>();
 	
 	public static Media media;
 	public static MediaPlayer mediaPlayer;
@@ -86,17 +104,102 @@ public class Helper {
 	public static void loadJSON(){
 		JsonParser parser = new JsonParser();
 		try {
-			InputStream is = Mix.class.getResourceAsStream("/color.json");
+			File colorFile = new File(System.getProperty("user.home") + "/Music/Mix/color.json");
+			
+			InputStream is;
+			if (colorFile.exists()){
+				is = new FileInputStream(colorFile);
+			} else {
+				is = Mix.class.getResourceAsStream("/color.json");
+			}
+
 			InputStreamReader reader = new InputStreamReader(is);
-			json = (JsonObject) parser.parse(reader);
+			colorJSON = (JsonObject) parser.parse(reader);
+			reader.close();
+			is.close();
+			
+			
+			File playlistFile = new File(System.getProperty("user.home") + "/Music/Mix/playlists.json");
+			
+			if (playlistFile.exists()){
+				is = new FileInputStream(playlistFile);
+				reader = new InputStreamReader(is);
+				playlistJSON = (JsonArray) parser.parse(reader);
+				reader.close();
+				is.close();
+			} else {
+				playlistJSON = new JsonArray();
+			}
+			
+			for (int i = 0; i < playlistJSON.size(); i++){
+				JsonObject obj = (JsonObject) playlistJSON.get(i);
+				String name = obj.get("title").toString().replace('"', ' ').trim();
+				String description = obj.get("description").toString().replace('"', ' ').trim();
+				
+				Playlist p = new Playlist(name, description);
+				JsonArray songs = (JsonArray) obj.get("songs");
+				for (int j = 0; j < songs.size(); j++){
+					String song = songs.get(j).toString().replace('"', ' ').trim();
+					p.add(song);
+				}
+				
+				playlists.add(p);
+			}
+			
 		} catch (Exception e) {
 			
 		}
 	}
 	
+	public static void saveJSON(){
+		String folderPath = System.getProperty("user.home") + "/Music/Mix/";
+		
+		if (!new File(folderPath).exists()){
+			new File(folderPath).mkdir();
+		}
+		
+		String colorPath = System.getProperty("user.home") + "/Music/Mix/color.json";
+		try {
+			Writer writer = new FileWriter(new File(colorPath));
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			gson.toJson(colorJSON, writer);
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String playlistPath = System.getProperty("user.home") + "/Music/Mix/playlists.json";
+		try {
+			Writer writer = new FileWriter(new File(playlistPath));
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			JsonArray playlist = new JsonArray();
+			
+			for (Playlist p : playlists){
+				JsonObject list = new JsonObject();
+				list.addProperty("title", p.name);
+				list.addProperty("description", p.description);
+				
+				JsonArray array = new JsonArray();
+				for (String s : p.songs){
+					array.add(s);
+				}
+				list.add("songs", array);
+				
+				playlist.add(list);
+			}
+			
+			gson.toJson(playlist, writer);
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	//Get value from JSON file
 	public static String getJSON(String text){
-		return json.get(text).toString().replace('"', ' ').trim();
+		return colorJSON.get(text).toString().replace('"', ' ').trim();
 	}
 	
 	//Load color directly from JSON file
@@ -115,7 +218,7 @@ public class Helper {
 		return g2;
 	}
 	
-	public static ArrayList<String> getMusic(){
+	public static void getMusic(){
 		ArrayList<String> songList = new ArrayList<String>();
 		
 		File folder = new File(System.getProperty("user.home") + musicPath);
@@ -125,11 +228,13 @@ public class Helper {
 			File f = listOfFiles[i];
 			if (!listOfFiles[i].isDirectory()){
 				if (f.getName().contains(".mp3")){
-					songList.add(f.getName().replace(".mp3", ""));
+					songList.add(f.getAbsolutePath());
 				}
 			}
 		}
-		return songList;
+		
+		currentSongList = songList;
+		//return songList;
 	}
 	
 	public static ArrayList<String> getFolders(){
@@ -147,11 +252,15 @@ public class Helper {
 		return folderList;
 	}
 	
+	public static void getPlaylistMusic(){
+		currentSongList = playlists.get(currentPlaylistIndex).songs;
+		currentSongIndex = 0;
+	}
+	
 	public static void play(){
 		if (mediaPlayer == null){
-			if (getMusic().size() > 0){
-				String path = System.getProperty("user.home") + Helper.musicPath + getMusic().get(0) + ".mp3";
-				play(path);
+			if (Helper.currentSongList.size() > 0){
+				play(Helper.currentSongList.get(0));
 			}
 		} else {
 			mediaPlayer.play();
@@ -171,11 +280,22 @@ public class Helper {
 		
 		media = new Media(nowPlaying.toURI().toString());
 		mediaPlayer = new MediaPlayer(media);
+		mediaPlayer.setVolume(Helper.volume);
+		
+		mediaPlayer.setOnEndOfMedia(new Runnable() {
+			@Override
+			public void run() {
+				Helper.play(Helper.getNextSong());
+			}
+		});
+		
 		mediaPlayer.play();
 		
 		Helper.playing = true;
 		Helper.musicPlayer.play.setImage(Helper.pause);
 		Helper.musicPlayer.update();
+		
+		currentSongIndex = currentSongList.indexOf(path);
 	}
 	
 	public static void pause(){
@@ -190,12 +310,38 @@ public class Helper {
 		}
 	}
 	
+	public static String getNextSong(){
+		if (currentSongIndex == currentSongList.size() - 1){
+			return Helper.currentSongList.get(0);
+		}
+		return Helper.currentSongList.get(Helper.currentSongIndex + 1);
+	}
+	
+	public static String getPrevSong(){
+		if (currentSongIndex == 0){
+			return Helper.currentSongList.get(Helper.currentSongList.size() - 1);
+		}
+		return Helper.currentSongList.get(Helper.currentSongIndex - 1);
+	}
+	
 	public static Image loadResourceImage(String path){
 		try {
 			return ImageIO.read(Mix.class.getResource(path));
 		} catch (IOException e) {
 			return null;
 		}
+	}
+	
+	public static BufferedImage changeImageColor(BufferedImage img, Color color){
+		BufferedImage colored = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_ARGB);
+		for (int y = 0; y < img.getHeight(); y++){
+			for (int x = 0; x < img.getWidth(); x++){
+				int alpha = (img.getRGB(x, y) >> 24) & 0xFF;
+				int rgb = (alpha << 24) & 0xFF000000 | (color.getRed() << 16) & 0x00FF0000 | (color.getGreen() << 8) & 0x0000FF00 | color.getBlue() & 0x000000FF;
+				colored.setRGB(x, y, rgb);
+			}
+		}
+		return colored;
 	}
 	
 	public static String getSongTitle(String path){
@@ -254,5 +400,12 @@ public class Helper {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public static void setVolume(double value){
+		volume = value;
+		if (mediaPlayer != null){
+			mediaPlayer.setVolume(value);
+		}	
 	}
 }

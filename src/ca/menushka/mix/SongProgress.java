@@ -3,21 +3,13 @@ package ca.menushka.mix;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.MouseInfo;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
-
-import com.sun.medialib.mlib.mediaLibException;
-
-import javafx.event.EventHandler;
-import javafx.scene.media.MediaMarkerEvent;
 
 public class SongProgress extends JPanel implements ActionListener{
 	int x, y, width, height;

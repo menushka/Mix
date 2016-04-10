@@ -8,8 +8,6 @@ import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.font.FontRenderContext;
-import java.awt.geom.Rectangle2D;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -34,7 +32,7 @@ public class DragMenu extends JPanel {
 		setBounds(x, y, width, height);
 		setVisible(true);
 		
-		setBackground(Helper.loadColorfromJSON("menubar"));
+		setBackground(Helper.loadColorfromJSON("menubar_background"));
 		
 		MouseAdapter mouseAdapter = new MouseAdapter() {
 			@Override
@@ -62,7 +60,7 @@ public class DragMenu extends JPanel {
 		
 		Graphics2D g2 = Helper.getSmoothedGraphics(g);
 		
-		g2.setColor(Helper.colorFromHEX("#ffffff"));
+		g2.setColor(Helper.loadColorfromJSON("menubar_font"));
 		g2.setFont(Helper.lato_normal.deriveFont(12f));
 		
 		String title = "Mix Player" + " - v" + Mix.VERSION + " BETA";
